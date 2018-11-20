@@ -1,12 +1,8 @@
-# RDS to S3 backups
-This docker image starts a scheduled cron job. The cron job creates a dump of a
-postgres database on RDS, compresses it and uploads it to S3.
+# PostgreSQL S3 Backups
 
-#### How it works in detail
+This docker image starts an hourly cron job.
 
-This container performs the following steps when executed:
-* Create a compressed dump of the database using `pg_dump`
-* Upload the dump to s3
+The cron job creates a backup of the PostgreSQL database and uploads it to S3.
 
 ## Usage
 
@@ -26,9 +22,9 @@ Please mind the configuration below.
 
 ### Execution role policy
 
-The execution role needs an [permission for RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.IAMPolicy.html) and S3.
+The execution role needs an S3 IAM policy.
 
-The following is a minimal example of a useable role policy:
+An example looks like:
 
 ```json
 {
@@ -40,29 +36,38 @@ The following is a minimal example of a useable role policy:
           "s3:Put*",
       ],
       "Resource": [
-        "${s3_bucket_arn}"
+        "arn:aws:s3:::${s3_bucket_arn}",
+        "arn:aws:s3:::${s3_bucket_arn}/*"
       ]
     }
   ]
 }
 ```
 
-`s3_bucket_arn`, the ARN of the bucket to upload the backup to
+`s3_bucket_arn`, the ARN of the bucket to upload the backup to.
 
 ### Environment
 
 The container requires the following environment variables to be set:
 
-`POSTGRES_DATABASE`, name of the database
-`POSTGRES_HOST`, the name of the RDS instance
-`POSTGRES_PORT`, the port of the RDS instance (default: 5432)
-`POSTGRES_USER`, the database user
-`S3_BUCKET`, the name of the S3 bucket to upload the backup to
-`S3_PREFIX`, prefix which will be prepended to the upload path (default: `backups`)
+ * `POSTGRES_DATABASE`, name of the database
+ * `POSTGRES_HOST`, the name of the RDS instance
+ * `POSTGRES_PORT`, the port of the RDS instance (default: 5432)
+ * `POSTGRES_USER`, the database user
+ * `POSTGRES_PASSWORD`, the database user password
+ * `S3_BUCKET`, the name of the S3 bucket to upload the backup to
+ * `S3_PREFIX`, prefix which will be prepended to the upload path (default:
+   `backups`)
 
 ## Two words of caution
 
 Please test your backups regularly.
 
 Encrypt your database data!
-The backups are not encrypted to quick restore.
+The backups are not encrypted to allow quick restore.
+
+## Credits
+
+Initially this was a fork of
+[rds-postgres-backup-s3-secure](https://github.com/ejoebstl/rds-postgres-backup-s3-secure)
+by Emanuel Jöbstl.
