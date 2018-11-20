@@ -1,31 +1,7 @@
-FROM alpine:latest
-LABEL maintainer="Emanuel Jöbstl <emanuel.joebstl@gmail.com"
+FROM python:2.7.15-alpine
 
-RUN apk update
-# Install pg_dump
-RUN apk add postgresql-client
-
-# Install aws cli
-RUN apk add python py2-pip
+RUN apk add --no-cache postgresql-client bzip2 bash
 RUN pip install awscli
-RUN apk del py2-pip
-
-# Add bzip2 for a compressed backup
-RUN apk add bzip2
-
-# Add openssl for encrypted backup
-RUN apk add openssl
-
-# Finally add a bash for running our script
-RUN apk add bash
-
-# Fetch RDS root cert, then remove curl again
-RUN apk add curl
-RUN curl -s https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem --output rds_root.pem 
-RUN apk del curl
-
-# Clear APK cache for a small image
-RUN rm -rf /var/cache/apk?*
 
 ENV POSTGRES_DATABASE=
 ENV POSTGRES_HOST=
@@ -37,4 +13,6 @@ ENV OPENSSL_PUBLIC_KEY=
 
 ADD backup.sh backup.sh
 
-CMD ["bash", "backup.sh"]
+RUN echo '0  *  *  *  *    bash /backup.sh' > /etc/crontabs/root
+
+CMD /usr/sbin/crond -f -d 8
