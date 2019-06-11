@@ -49,3 +49,7 @@ echo "Uploading backup..."
 aws s3 cp ${FILENAME} "s3://$S3_BUCKET/$S3_PREFIX/${FILENAME}" --expected-size "${SIZE}"
 
 echo "Done."
+
+rm ${FILENAME}
+
+echo "Local backup file removed."
