@@ -45,8 +45,12 @@ SIZE=$(du -h $FILENAME| cut -f1)
 echo "Backup size: ${SIZE}"
 echo "Uploading backup..."
 
+YEAR=$(date +"%Y")
+MONTH=$(date +"%m")
+DAY=$(date +"%d")
+
 # Upload, expected size param used for large backup (>5G), according to AWS docs.
-aws s3 cp ${FILENAME} "s3://$S3_BUCKET/$S3_PREFIX/${FILENAME}" --expected-size "${SIZE}"
+aws s3 cp ${FILENAME} "s3://$S3_BUCKET/$S3_PREFIX/${YEAR}/${MONTH}/${DAY}/${FILENAME}" --expected-size "${SIZE}"
 
 echo "Done."
 
